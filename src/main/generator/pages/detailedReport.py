@@ -125,7 +125,7 @@ def detailedReport(params, user):
             )
         ) 
     )
-
+ 
 def score(submissions: list, contestStart, problemSummary) -> tuple:
     """ Given a list of submissions by a particular user, calculate that user's score.
         Calculates score in ACM format. """
