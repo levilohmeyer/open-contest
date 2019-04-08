@@ -5,7 +5,7 @@ import logging
 from code.util import register
 import time
 
-def leaderboard(params, user):
+def detailedReport(params, user):
     contest = Contest.getCurrent() or Contest.getPast()
     if not contest:
         return Page(
@@ -20,7 +20,6 @@ def leaderboard(params, user):
 
     start = contest.start
     end = contest.end
-
     
     subs = {}
     for sub in Submission.all():
@@ -52,56 +51,78 @@ def leaderboard(params, user):
         if (u1[1], u1[2], u1[3]) == (u2[1], u2[2], u2[3]):
             ranks[i] = ranks[i - 1]
     
-    scoresDisplay = []
+    subs = {}
+    for sub in Submission.all():
+        if start <= sub.timestamp <= end and not sub.user.isAdmin():
+            subs[sub.user.id] = subs.get(sub.user.id) or []
+            subs[sub.user.id].append(sub)
+
+    pn = 0
+    probCount = []
+    for i in range(len(contest.problems)):
+        pn += 1
+        probCount.append(h.th(str(pn)))
+
+
+
+    i = 0
+    for user in subs:
+        i += 1
+        listOfSubs = subs[user]
+        m = 0
+        for subm in listOfSubs:
+            m += 1
+
+        print(listOfSubs)
+    
+    finalStandingDisplay = []
     for (name, solved, samples, points, attempts), rank in zip(scores, ranks):
-        scoresDisplay.append(h.tr(
+        finalStandingDisplay.append(h.tr(
             h.td(rank, cls="center"),
             h.td(name),
-            h.td(attempts, cls="center"),
+            h.td(User.getByName(name).id, cls="center"),
             h.td(solved, cls="center"),
-            h.td(samples, cls="center"),
-            h.td(points, cls="center")
+            h.td(points, cls="center"),
+            h.td(attempts, cls="center")
         ))
 
     problemSummaryDisplay = []
-    for problem in contest.problems:
-        problemSummaryDisplay.append(h.tr(
-            h.td(problem.title),
-            h.td(problemSummary[problem.id][0], cls="center"),
-            h.td(problemSummary[problem.id][1], cls="center")
-        ))
 
+    print("did i get here?")
+ 
     return Page(
-        h.a("Detailed Report", cls="button", href="/detailedReport"),
-        h2("Leaderboard", cls="page-title"),
+        h2("Final Standings", cls="page-title"),
         h.table(
             h.thead(
                 h.tr(
-                    h.th("Rank", cls="center"),
-                    h.th("User"),
-                    h.th("Attempts", cls="center"),
-                    h.th("Problems Solved", cls="center"),
-                    h.th("Sample Cases Solved", cls="center"),
-                    h.th("Penalty Points", cls="center")
+                    h.th("Rank"),
+                    h.th("Username", cls="center"),
+                    h.th("ID"),
+                    h.th("Correct"),
+                    h.th("Penalty"),
+                    h.th("Attempts"),
+                    *probCount
                 )
             ),
             h.tbody(
-                *scoresDisplay
+                *finalStandingDisplay
             )
         ),
         h2("Problem Summary", cls="page-title"),
         h.table(
             h.thead(
                 h.tr(
-                    h.th("Problem", cls="center"),
-                    h.th("Attempts", cls="center"),
-                    h.th("Solved", cls="center"),
+                    h.th("Rank"),
+                    h.th("Username", cls="center"),
+                    h.th("ID"),
+                    h.th("Correct"),
+                    h.th("Penalty"),
+                    h.th("Attempts"),
                 )
             ),
             h.tbody(
-                *problemSummaryDisplay
+                *finalStandingDisplay
             )
-
         )
     )
 
@@ -164,4 +185,4 @@ def score(submissions: list, contestStart, problemSummary) -> tuple:
     # The user's score is dependent on the number of solved problems and the number of penalty points
     return solvedProbs, sampleProbs, int(penPoints)
 
-register.web("/leaderboard", "loggedin", leaderboard)
+register.web("/detailedReport", "loggedin", detailedReport)
