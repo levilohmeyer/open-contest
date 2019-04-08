@@ -123,7 +123,7 @@ def detailedReport(params, user):
             h.tbody(
                 *finalStandingDisplay
             )
-        )
+        ) 
     )
 
 def score(submissions: list, contestStart, problemSummary) -> tuple:
