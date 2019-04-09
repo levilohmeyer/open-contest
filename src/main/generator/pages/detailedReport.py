@@ -1,9 +1,10 @@
-from code.util.db import Submission, User, Contest
+from code.util.db import Submission, User, Contest, Problem
 from code.generator.lib.htmllib import *
 from code.generator.lib.page import *
 import logging
 from code.util import register
 import time
+from datetime import datetime, timezone
 
 def detailedReport(params, user):
     contest = Contest.getCurrent() or Contest.getPast()
@@ -63,40 +64,153 @@ def detailedReport(params, user):
         pn += 1
         probCount.append(h.th(str(pn)))
 
-
-
+    allContestProblems = []
     i = 0
-    for user in subs:
+    for prob in contest.problems:
         i += 1
-        listOfSubs = subs[user]
-        m = 0
-        for subm in listOfSubs:
-            m += 1
+        allContestProblems.append([i, Problem.get(prob.id), 0, 0])
 
-        print(listOfSubs)
-    
+    # Final Summary Display Construction
     finalStandingDisplay = []
+
     for (name, solved, samples, points, attempts), rank in zip(scores, ranks):
+        # iterate over each sub by the person
+        curContestantInfo = []
+        i = 0
+        isOld = False
+        for problem in allContestProblems:
+            for sub in subs[User.getByName(name).id]:
+                if sub.problem.id == problem[1].id:
+                    if curContestantInfo != []:
+                        for infoBlock in curContestantInfo:
+                            if sub.problem.id == infoBlock[0]:
+                                isOld = True
+                        if isOld:
+                            isOld = False
+                            for infoBlock in curContestantInfo:
+                                if sub.problem.id == infoBlock[0]:
+                                    infoBlock[2] = infoBlock[2] + 1
+                                    if infoBlock[1] != "--" and sub.result == "ok":
+                                        if int(sub.timestamp) > int(infoBlock[1]):
+                                            infoBlock[1] = str(sub.timestamp)
+                                    elif sub.result == "ok":
+                                        infoBlock[1] = str(sub.timestamp)
+                        else:
+                            if sub.result == "ok":
+                                curContestantInfo.append([sub.problem.id, sub.timestamp, 1])
+                            else:
+                                curContestantInfo.append([sub.problem.id, "--", 1])
+                    else:
+                        if sub.result == "ok":
+                            curContestantInfo.append([sub.problem.id, sub.timestamp, 1])
+                        else:
+                            curContestantInfo.append([sub.problem.id, "--", 1])
+
+        cciDisplay = []
+        noEntries = True
+        for problem in allContestProblems:
+            for info in curContestantInfo:
+                if problem[1].id == info[0]:
+                    noEntries = False
+                    if info[1] == "--":
+                        cciDisplay.append(
+                        h.td(f"({str(info[2])}) --", cls="center")
+                        )
+                    else:
+                        cciDisplay.append(
+                        # Times are currently set to Eastern with daylight saving (UTC minus four hours).
+                        # Remove the "- 14400" in the following lines to change the time back to UTC.
+                        h.td(f"({str(info[2])}) {datetime.fromtimestamp((int(info[1])/1000) - 14400).strftime('%H:%M')}", cls="center")
+                        )
+            if noEntries:
+                cciDisplay.append(
+                    h.td("  ")
+                    )
+            noEntries = True
+            DispName = name
+        if contest.end >= time.time() * 1000:
+            DispName = ""
         finalStandingDisplay.append(h.tr(
             h.td(rank, cls="center"),
-            h.td(name),
+            h.td(DispName, cls="center"),
             h.td(User.getByName(name).id, cls="center"),
             h.td(solved, cls="center"),
             h.td(points, cls="center"),
-            h.td(attempts, cls="center")
+            h.td(attempts, cls="center"),
+            *cciDisplay
         ))
 
-    problemSummaryDisplay = []
+    # Problem Summary Display Construction
+    probSummaryDisplay = []
 
-    print("did i get here?")
- 
+    allGoodSubs = []
+    for sub in Submission.all():
+        if start <= sub.timestamp <= end and not sub.user.isAdmin():
+            allGoodSubs.append(sub)
+
+    for prob in allContestProblems:
+        for sub in allGoodSubs:
+            curSub = sub
+            if prob[1].id == curSub.problem.id:
+                if curSub.result == "ok":
+                    prob[2] += 1
+                    prob[3] += 1
+                else:
+                    prob[2] += 1
+    
+    i = 0
+    for x in range(len(allContestProblems)):
+        curProb = allContestProblems[i]
+        i += 1
+        probSummaryDisplay.append(h.tr(
+            h.td(curProb[0]),
+            h.td(curProb[1].title),
+            h.td(curProb[2], cls="center"),
+            h.td(curProb[3], cls="center"),
+        ))
+    # Language Summary Display Construction
+    langBreakdownDisplay = []
+
+    allContProbsWithLangNums = []
+    i = 0
+    for prob in contest.problems:
+        i += 1
+        allContProbsWithLangNums.append([i, Problem.get(prob.id), 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    langIndexForLangDisplay = {'c': 2, 'cpp': 3, 'cs': 4, 'java': 5, 'python2': 6, 'python3': 7, 'ruby': 8, 'vb': 9}
+
+    for prob in allContProbsWithLangNums:
+        for sub in allGoodSubs:
+            curSub = sub
+            if prob[1].id == curSub.problem.id:
+                prob[langIndexForLangDisplay[sub.language]] += 1
+                prob[10] += 1
+
+    i = 0
+    for x in range(len(allContProbsWithLangNums)):
+        curProb = allContProbsWithLangNums[i]
+        i += 1
+        langBreakdownDisplay.append(h.tr(
+            h.td(curProb[0]),
+            h.td(curProb[1].title),
+            h.td(curProb[2], cls="center"),
+            h.td(curProb[3], cls="center"),
+            h.td(curProb[4], cls="center"),
+            h.td(curProb[5], cls="center"),
+            h.td(curProb[6], cls="center"),
+            h.td(curProb[7], cls="center"),
+            h.td(curProb[8], cls="center"),
+            h.td(curProb[9], cls="center"),
+            h.td(curProb[10], cls="center")
+        ))
+
     return Page(
         h2("Final Standings", cls="page-title"),
-        h.table(
+        h.table(cls="fs", contents=[
             h.thead(
                 h.tr(
                     h.th("Rank"),
-                    h.th("Username", cls="center"),
+                    h.th("Username"),
                     h.th("ID"),
                     h.th("Correct"),
                     h.th("Penalty"),
@@ -107,23 +221,44 @@ def detailedReport(params, user):
             h.tbody(
                 *finalStandingDisplay
             )
-        ),
+        ]),
+        h.p(cls="detRepp", contents=["Each value in parenthesis represents the number of attempts of the given problem for the contestant.", h.br(), "Each time represents the time of the correct submission in Eastern Standard Time.", h.br(), "Username is not shown during the contest."]),
         h2("Problem Summary", cls="page-title"),
-        h.table(
+        h.table(cls="fs", id="probSummary", contents=[
             h.thead(
                 h.tr(
-                    h.th("Rank"),
-                    h.th("Username", cls="center"),
-                    h.th("ID"),
-                    h.th("Correct"),
-                    h.th("Penalty"),
+                    h.th("#"),
+                    h.th("Title"),
                     h.th("Attempts"),
+                    h.th("Correct")
                 )
             ),
             h.tbody(
-                *finalStandingDisplay
+                *probSummaryDisplay
             )
-        ) 
+        ]),
+        h2("Language Breakdown", cls="page-title"),
+        h.p("Correct Submissions by Language"),
+        h.table(cls="fs", id="langBreakdown", contents=[
+            h.thead(
+                h.tr(
+                    h.th("#"),
+                    h.th("Title"),
+                    h.th("C"),
+                    h.th("C++"),
+                    h.th("C#"),
+                    h.th("Java"),
+                    h.th("Python 2"),
+                    h.th("Python 3"),
+                    h.th("Ruby"),
+                    h.th("Visual Basic"),
+                    h.th("Total")
+                )
+            ),
+            h.tbody(
+                *langBreakdownDisplay
+            )
+        ])
     )
  
 def score(submissions: list, contestStart, problemSummary) -> tuple:
