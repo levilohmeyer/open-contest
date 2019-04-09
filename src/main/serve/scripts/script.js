@@ -418,10 +418,9 @@ Contest page
         var showProblemInfoBlocks = $("#show-problem-info-blocks").val()
 
         // Invalid DATE format; "T" after the date and "Z" after the time have been inserted 
-        // for the correct format for creating the Dates to incorporate
-        // the Safari browser, then the milliseconds are adjusted 
-        // for the correct time zone for each of the following variables, 
-        //since "Z" assumes you are entering a UTC time.
+        // for the correct format for creating the Dates, then the milliseconds are adjusted 
+        // for the correct time zone for each of the following variables, since "Z" assumes you
+        // are entering a UTC time.
 
         var start = new Date(`${startDate}T${startTime}Z`);
         start = start.getTime() + (start.getTimezoneOffset() * 60000);
