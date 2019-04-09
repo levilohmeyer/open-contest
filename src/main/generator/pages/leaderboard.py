@@ -72,6 +72,7 @@ def leaderboard(params, user):
         ))
 
     return Page(
+        h.a("Detailed Report", cls="button", href="/detailedReport"),
         h2("Leaderboard", cls="page-title"),
         h.table(
             h.thead(

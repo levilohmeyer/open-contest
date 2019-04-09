@@ -160,13 +160,13 @@ Problem page
 
     var icons = {
         "ok": "check",
-        "wrong_answer": "times",
+        "wrong_answer": "sync",
         "tle": "clock",
         "runtime_error": "exclamation-triangle"
     };
     var verdict_name = {
         "ok": "Accepted",
-        "wrong_answer": "Wrong Answer",
+        "wrong_answer": "Pending...",
         "tle": "Time Limit Exceeded",
         "runtime_error": "Runtime Error"
     };
@@ -415,7 +415,7 @@ Contest page
         var endDate = $("#contest-end-date").val();
         var endTime = $("#contest-end-time").val();
         var scoreboardOffTime = $("#scoreboard-off-time").val();
-
+        var showProblemInfoBlocks = $("#show-problem-info-blocks").val()
 
         // Invalid DATE format; "T" after the date and "Z" after the time have been inserted 
         // for the correct format for creating the Dates, then the milliseconds are adjusted 
@@ -455,11 +455,11 @@ Contest page
             problems.push(newProblem);
         }
 
-        $.post("/editContest", {id: id, name: name, start: start, end: end, scoreboardOff: endScoreboard, problems: JSON.stringify(problems)}, id => {
+        $.post("/editContest", {id: id, name: name, start: start, end: end, scoreboardOff: endScoreboard, problems: JSON.stringify(problems), showProblemInfoBlocks: showProblemInfoBlocks}, id => {
             if (window.location.pathname == "/contests/new") {
                 window.location = `/contests/${id}`;
             } else {
-                window.location.reload()
+                window.location.reload();
             }
         });
     }
@@ -485,6 +485,9 @@ Contest page
         var endScoreboard = new Date(parseInt($("#scoreboardOff").val()));
         $("#scoreboard-off-time").val(`${fix(endScoreboard.getHours())}:${fix(endScoreboard.getMinutes())}`);
 
+        var showProblemInfoBlocks = $("#showProblemInfoBlocks").val();
+        $("#show-problem-info-blocks").val(showProblemInfoBlocks);
+    
         $("div.problem-cards").sortable({
             placeholder: "ui-state-highlight",
             forcePlaceholderSize: true,
@@ -676,24 +679,63 @@ Messages Page
 /*--------------------------------------------------------------------------------------------------
 Judging Page
 --------------------------------------------------------------------------------------------------*/
-    function changeSubmissionResult(id) {
+    function changeSubmissionResult(id, curVer) {
         var result = $(`.result-choice.${id}`).val();
-        $.post("/changeResult", {id: id, result: result}, result => {
-            if (result == "ok") {
+        $.post("/checkSubVersion", {id: id, curVer: curVer}, data => {
+            if (data !== "ok") {
+                alert("The submission change was cancelled. The submission has recently been changed by another user.");
                 window.location.reload();
+                return;
             } else {
-                alert(result);
+                $.post("/changeResult", {id: id, result: result}, result => {
+                    if (result == "ok") {
+                        window.location.reload();
+                    } else {
+                        alert(result);
+                    }
+                });
             }
-        })
+        });
     }
 
-    function submissionPopup(id) {
-        $.post(`/judgeSubmission/${id}`, {}, data => {
-            $(".modal-dialog").html(data);
-            $(".result-tabs").tabs();
-            fixFormatting();
-            $(".modal").modal();
-        });
+    function submissionPopup(id, checkout) {
+        if (checkout !== ""){
+            $.post("/checkCheckout", {id: id, checkout: checkout}, data => {
+                if (data !== "ok") {
+                    let override = confirm(`${data} is already judging this submission. Do you wish to override?`);
+                    if (override) {
+                        $.post(`/judgeSubmission/${id}`, {}, data => {
+                            $(".modal-dialog").html(data);
+                            $(".result-tabs").tabs();
+                            fixFormatting();
+                            $(".modal").modal();
+                            chosenStatus = $("#change-judged-status").val()
+                            $("#change-judged-status").val(chosenStatus);
+                        });
+                    } else {
+                        return;
+                    }
+                } else {
+                    $.post(`/judgeSubmission/${id}`, {}, data => {
+                        $(".modal-dialog").html(data);
+                        $(".result-tabs").tabs();
+                        fixFormatting();
+                        $(".modal").modal();
+                        chosenStatus = $("#change-judged-status").val()
+                        $("#change-judged-status").val(chosenStatus);
+                    });
+                }
+            });
+        } else {
+            $.post(`/judgeSubmission/${id}`, {}, data => {
+                $(".modal-dialog").html(data);
+                $(".result-tabs").tabs();
+                fixFormatting();
+                $(".modal").modal();
+                chosenStatus = $("#change-judged-status").val()
+                $("#change-judged-status").val(chosenStatus);
+            });
+        }
     }
 
     function rejudge(id) {
@@ -704,5 +746,17 @@ Judging Page
             $(".rejudge").attr("disabled", false);
             $(".rejudge").removeClass("button-gray");
             alert(`New Result: ${verdict_name[data]}`);
+        });
+    }
+    
+    function changeJudgedStatus(id) {
+        var chosenStatus = $("#change-judged-status").val();
+        $.post("/changeJudgedStatus", {id: id, chosenStatus: chosenStatus}, data => {
+            $("#change-judged-status").val(chosenStatus);
+        });
+    }
+
+    function removeCheckout(id) {
+        $.post("/removeCheckout", {id: id}, data => {
         });
     }
