@@ -43,6 +43,20 @@ def readFile(path):
 def strip(text):
     return re.sub("[ \t\r]*\n", "\n", text)
 
+# Checks if <incomplete> contains only lines from <full> in order
+# Can be missing some lines in the middle or at the end
+def compareStrings(incomplete, full):
+    lineNumOfFull = 0
+    for line in incomplete.split('\n'):
+        while lineNumOfFull < len(full.split('\n')):
+            if line == full.split('\n')[lineNumOfFull]:
+                break
+            lineNumOfFull += 1
+        else:
+            return False
+        lineNumOfFull += 1
+    return True
+
 def runCode(sub):
     # Copy the code over to the runner /tmp folder
     extension = exts[sub.language]
@@ -79,7 +93,12 @@ def runCode(sub):
         
         res = readFile(f"/tmp/{sub.id}/out/result{i}.txt")
         if res == "ok" and strip((answers[-1] or "").rstrip()) != strip((outputs[-1] or "").rstrip()):
-            res = "wrong_answer"
+            if compareStrings(strip((outputs[-1] or "").rstrip()), strip((answers[-1] or "").rstrip())):
+                res = "incomplete_output"
+            elif compareStrings(strip((answers[-1] or "").rstrip()), strip((outputs[-1] or "").rstrip())):
+                res = "extra_output"
+            else:
+                res = "wrong_answer"
         if res == None:
             res = "tle"
         results.append(res)
