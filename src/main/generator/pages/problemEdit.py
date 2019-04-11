@@ -75,6 +75,10 @@ def editProblem(params, user):
                     h.textarea(cls="form-control", name="problem-constraints", id="problem-constraints", contents=escape(prob.constraints))
                 ]),
                 div(cls="form-group col-12", contents=[
+                    h.label(**{"for": "problem-timeLimit", "contents":"Time Limit (seconds)"}),
+                    h.input(cls="form-control", type="number", name="problem-timeLimit", id="problem-timeLimit", value=prob.timeLimit)
+                ]),
+                div(cls="form-group col-12", contents=[
                     h.label(**{"for": "problem-samples", "contents":"Number of Sample Cases"}),
                     h.input(cls="form-control", type="number", name="problem-samples", id="problem-samples", value=prob.samples)
                 ]),
@@ -129,6 +133,10 @@ def newProblem(params, user):
                 div(cls="form-group col-12 rich-text", contents=[
                     h.label(**{"for": "problem-constraints", "contents":"Constraints"}),
                     h.textarea(cls="form-control", name="problem-constraints", id="problem-constraints", contents="Input Constraints")
+                ]),
+                div(cls="form-group col-12", contents=[
+                    h.label(**{"for": "problem-timeLimit", "contents":"Time Limit (seconds)"}),
+                    h.input(cls="form-control", type="number", name="problem-timeLimit", id="problem-timeLimit", value=5)
                 ]),
                 div(cls="form-group col-12", contents=[
                     h.input(cls="form-control", type="hidden", name="problem-samples", id="problem-samples", value=0)
