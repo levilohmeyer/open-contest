@@ -7,6 +7,9 @@ import shutil
 import re
 from uuid import uuid4
 
+MAX_OUTPUT_LENGTH = 1000000
+MAX_OUTPUT_DISPLAY_LENGTH = 10000
+
 def addSubmission(probId, lang, code, user, type):
     sub = Submission()
     sub.problem = Problem.get(probId)
@@ -36,7 +39,7 @@ exts = {
 def readFile(path):
     try:
         with open(path, "rb") as f:
-            return f.read(1000000).decode("utf-8")
+            return f.read(MAX_OUTPUT_LENGTH).decode("utf-8")
     except:
         return None
 
@@ -98,6 +101,8 @@ def runCode(sub):
 
     sub.results = results
     sub.inputs = inputs
+    for index, output in enumerate(outputs):
+        outputs[index] = (output[:MAX_OUTPUT_DISPLAY_LENGTH] + '... additional data not displayed ...') if len(output) > MAX_OUTPUT_DISPLAY_LENGTH else output
     sub.outputs = outputs
     sub.answers = answers
     sub.errors = errors
