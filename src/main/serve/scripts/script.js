@@ -706,3 +706,14 @@ Judging Page
             alert(`New Result: ${verdict_name[data]}`);
         });
     }
+
+    function rejudgeAll(id) {
+        $(".rejudge").attr("disabled", true);
+        $(".rejudge").addClass("button-gray");
+
+        $.post("/rejudgeAll", {id: id}, data => {
+            $(".rejudge").attr("disabled", false);
+            $(".rejudge").removeClass("button-gray");
+            alert(`Rejudged All Submissions for Problem: ${data}`);
+        });
+    }
