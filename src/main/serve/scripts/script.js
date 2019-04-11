@@ -706,3 +706,24 @@ Judging Page
             alert(`New Result: ${verdict_name[data]}`);
         });
     }
+
+    function download(id) {
+        $(".rejudge").attr("disabled", true);
+        $(".rejudge").addClass("button-gray");
+
+        $.post("/download", {id: id}, data => {
+            $(".rejudge").attr("disabled", false);
+            $(".rejudge").removeClass("button-gray");
+            file = JSON.parse(data)
+            jQuery.each(file, (name, value) => {
+              byteCharacters = atob(value)
+              const byteNumbers = new Array(byteCharacters.length)
+              for (let i = 0; i < byteCharacters.length; i++) {
+                  byteNumbers[i] = byteCharacters.charCodeAt(i)
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              saveAs(new Blob([byteArray], {type: "application/zip"}, name))
+            })
+            
+        });
+    }
