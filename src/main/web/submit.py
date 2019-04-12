@@ -149,16 +149,17 @@ def download(params, setHeader, user):
     for index, input in enumerate(submission.inputs):
         f=open(f"/tmp/{id}/zip/input_{index}.txt", "w+")
         f.write(input)
+        f.close()
     for index, output in enumerate(submission.outputs):
         f=open(f"/tmp/{id}/zip/output_{index}.txt", "w+")
         f.write(output)
+        f.close()
     with ZipFile(f"/tmp/{id}/download.zip",'w') as zip:
         for root, directories, files in os.walk(f"/tmp/{id}/zip/"):
             for file in files:
                 zip.write(os.path.join(root, file), file)
     with open(f"/tmp/{id}/download.zip", "rb") as binary_file:
         data = {"download.zip": base64.b64encode(binary_file.read()).decode('ascii')}
-    print(json.dumps(data))
     return json.dumps(data)
     
 
