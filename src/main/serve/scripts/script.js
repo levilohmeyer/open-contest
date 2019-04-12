@@ -160,12 +160,16 @@ Problem page
 
     var icons = {
         "ok": "check",
+        "extra_output": "sync",
+        "incomplete_output": "sync",
         "wrong_answer": "sync",
         "tle": "clock",
         "runtime_error": "exclamation-triangle"
     };
     var verdict_name = {
         "ok": "Accepted",
+        "extra_output": "Pending...",
+        "incomplete_output": "Pending...",
         "wrong_answer": "Pending...",
         "tle": "Time Limit Exceeded",
         "runtime_error": "Runtime Error"
