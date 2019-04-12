@@ -67,12 +67,21 @@ class TestCaseData(UIElement):
             ]),
             div(cls="row", contents=[
                 div(cls="col-6", contents=[
-                    h.h4("Output"),
+                    h.h4("Actual Output"),
                     h.code(output.replace(" ", "&nbsp;").replace("\n", "<br/>"))
                 ]),
                 div(cls="col-6", contents=[
-                    h.h4("Correct Answer"),
+                    h.h4("Answer"),
                     h.code(answer.replace(" ", "&nbsp;").replace("\n", "<br/>"))
+                ])
+            ]),
+            div(cls="row", contents=[
+                div(cls="col-12", contents=[
+                    h.h4("Diff"),
+                    h.em("Insertions are in <span style=color:darkgreen;background-color:palegreen>green</span>, deletions are in <span style=color:darkred;background-color:#F6B0B0>red</span>"),
+                    h.code(id="diff", contents=[
+                        h.script(f"document.getElementById('diff').innerHTML = getDiff(`{output}`, `{answer}`)")
+                    ])
                 ])
             ])
         ])
@@ -114,7 +123,7 @@ class SubmissionCard(UIElement):
                 ])
             ])
         ])
-
+        
 class ProblemContent(UIElement):
     def __init__(self, x, cont):
         num, prob = x
@@ -156,6 +165,7 @@ class SubmissionTable(UIElement):
 
 def judge(params, user):
     cont = Contest.getCurrent()
+    print(cont)
     if not cont:
         return Page(
             h1("&nbsp;"),
