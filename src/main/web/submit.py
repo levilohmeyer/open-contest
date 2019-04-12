@@ -142,6 +142,7 @@ def changeJudgedStatus(params, setHeader, user):
     submission = Submission.get(id)
     submission.submissionStatus = params["chosenStatus"]
     submission.save()
+    return submission.submissionStatus
 
 def removeCheckout(params, setHeader, user):
     id = params["id"]
