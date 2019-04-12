@@ -231,7 +231,7 @@ Problem page
         } else {
             var results = "";
             for (var i = 0; i < sub.results.length; i ++) {
-                var res = sub.submisionStatus == "Review" && (sub.results[i] == "wrong_answer" || sub.results[i] == "incomplete_output" || sub.results[i] == "extra_output") ? "pending" : sub.results[i];
+                var res = sub.submissionStatus == "Review" && (sub.results[i] == "wrong_answer" || sub.results[i] == "incomplete_output" || sub.results[i] == "extra_output") ? "pending" : sub.results[i];
                 var icon = icons[res];
                 results += `<div class="col-2"><i class="fa fa-${icon}" title="${verdict_name[res]}"></i> Case #${i}</div>`;
             }
