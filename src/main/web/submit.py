@@ -126,6 +126,7 @@ def changeResult(params, setHeader, user):
     if not sub:
         return "Error: incorrect id"
     sub.result = params["result"]
+    sub.checkout = ""
     sub.save()
     return "ok"
 
@@ -141,6 +142,7 @@ def changeJudgedStatus(params, setHeader, user):
     id = params["id"]
     submission = Submission.get(id)
     submission.submissionStatus = params["chosenStatus"]
+    submission.checkout = ""
     submission.save()
     return submission.submissionStatus
 
