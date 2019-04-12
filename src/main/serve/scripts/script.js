@@ -716,13 +716,13 @@ Judging Page
             $(".rejudge").removeClass("button-gray");
             file = JSON.parse(data)
             jQuery.each(file, (name, value) => {
-              byteCharacters = atob(value)
-              const byteNumbers = new Array(byteCharacters.length)
-              for (let i = 0; i < byteCharacters.length; i++) {
-                  byteNumbers[i] = byteCharacters.charCodeAt(i)
-              }
-              const byteArray = new Uint8Array(byteNumbers);
-              saveAs(new Blob([byteArray], {type: "application/zip"}, name))
+                byteCharacters = atob(value)
+                const byteNumbers = new Array(byteCharacters.length)
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i)
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                saveAs(new Blob([byteArray], {type: "application/zip"}, name))
             })
             
         });
