@@ -160,17 +160,19 @@ Problem page
 
     var icons = {
         "ok": "check",
-        "extra_output": "sync",
-        "incomplete_output": "sync",
-        "wrong_answer": "sync",
+        "pending": "sync",
+        "extra_output": "times",
+        "incomplete_output": "times",
+        "wrong_answer": "times",
         "tle": "clock",
         "runtime_error": "exclamation-triangle"
     };
     var verdict_name = {
         "ok": "Accepted",
-        "extra_output": "Pending...",
-        "incomplete_output": "Pending...",
-        "wrong_answer": "Pending...",
+        "pending": "Pending...",
+        "extra_output": "Extra Output",
+        "incomplete_output": "Incomplete Output",
+        "wrong_answer": "Wrong Answer",
         "tle": "Time Limit Exceeded",
         "runtime_error": "Runtime Error"
     };
@@ -229,12 +231,13 @@ Problem page
         } else {
             var results = "";
             for (var i = 0; i < sub.results.length; i ++) {
-                var res = sub.results[i];
+                var res = sub.submisionStatus == "Review" && (sub.results[i] == "wrong_answer" || sub.results[i] == "incomplete_output" || sub.results[i] == "extra_output") ? sub.results[i] : "pending";
+                console.log(res)
                 var icon = icons[res];
                 results += `<div class="col-2"><i class="fa fa-${icon}" title="${verdict_name[res]}"></i> Case #${i}</div>`;
             }
             $(".results.card .card-contents").html(`<div class="pad">
-                <h2>Result: ${verdict_name[sub.result]}</h2>
+                <h2>Result: ${verdict_name[sub.submissionStatus == "Review" ? "pending" : sub.result]}</h2>
                 <div class="row">
                     ${results}
                 </div>
