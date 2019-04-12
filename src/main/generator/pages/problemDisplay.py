@@ -58,6 +58,7 @@ def viewProblem(params, user):
                 Card("Input Format", formatMD(problem.input), cls="inp"),
                 Card("Output Format", formatMD(problem.output), cls="outp"),
                 Card("Constraints", formatMD(problem.constraints), cls="constraints"),
+                Card("Time Limit", str(problem.timeLimit) + " seconds", cls="timeLimit"),
                 div(cls="samples", contents=list(map(lambda x: getSample(x[0], x[1]), zip(problem.sampleData, range(problem.samples)))))
             ]),
             CodeEditor(),

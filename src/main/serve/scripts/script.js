@@ -556,6 +556,7 @@ Problem page
         problem.input       = mdEditors[1].value();
         problem.output      = mdEditors[2].value();
         problem.constraints = mdEditors[3].value();
+        problem.timeLimit   = $("#problem-timeLimit").val();
         problem.samples     = $("#problem-samples").val();
         testData = [];
         $(".test-data-cards .card").each((_, card) => {
