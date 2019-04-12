@@ -44,6 +44,16 @@ def resultOptions(result):
             ans.append(h.option(verdict_name[res], value=res))
     return ans
 
+def judgedOptions(jResult):
+    ans = []
+    if jResult == "Review":
+        ans.append(h.option("Review", value="Review", selected="selected"))
+        ans.append(h.option("Judged", value="Judged"))
+    else:
+        ans.append(h.option("Review", value="Review"))
+        ans.append(h.option("Judged", value="Judged", selected="selected"))
+    return ans
+
 class TestCaseTab(UIElement):
     def __init__(self, x, sub):
         num, result = x
@@ -79,6 +89,7 @@ class TestCaseData(UIElement):
 class SubmissionCard(UIElement):
     def __init__(self, submission: Submission, user: User):
         subTime = submission.timestamp
+        subStat = submission.submissionStatus
         probName = submission.problem.title
         submission.checkout = user.id
         submission.version += 1
@@ -107,8 +118,7 @@ class SubmissionCard(UIElement):
                 h.br(),
                 h.strong("Judged Status: ",
                     h.select(cls=f"result-choice {submission.id}", name="change-judged-status", id="change-judged-status", onchange=f"changeJudgedStatus('{submission.id}')", contents=[
-                        h.option("Review", value="Review"),
-                        h.option("Judged", value="Judged")
+                        *judgedOptions(submission.submissionStatus)
                     ])
                 ),
                 h.br(),
@@ -150,7 +160,7 @@ class SubmissionRow(UIElement):
 
 class SubmissionTable(UIElement):
     def __init__(self, contest):
-        subs = filter(lambda sub: sub.user.type != "admin" and contest.start <= sub.timestamp <= contest.end and sub.submissionStatus == "Review", Submission.all())
+        subs = filter(lambda sub: sub.user.type != "admin" and contest.start <= sub.timestamp <= contest.end, Submission.all())
         self.html = h.table(
             h.thead(
                 h.tr(
