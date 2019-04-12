@@ -710,8 +710,6 @@ Judging Page
                             $(".result-tabs").tabs();
                             fixFormatting();
                             $(".modal").modal();
-                            chosenStatus = $("#change-judged-status").val()
-                            $("#change-judged-status").val(chosenStatus);
                         });
                     } else {
                         return;
@@ -722,8 +720,6 @@ Judging Page
                         $(".result-tabs").tabs();
                         fixFormatting();
                         $(".modal").modal();
-                        chosenStatus = $("#change-judged-status").val()
-                        $("#change-judged-status").val(chosenStatus);
                     });
                 }
             });
@@ -733,8 +729,6 @@ Judging Page
                 $(".result-tabs").tabs();
                 fixFormatting();
                 $(".modal").modal();
-                chosenStatus = $("#change-judged-status").val()
-                $("#change-judged-status").val(chosenStatus);
             });
         }
     }
@@ -751,9 +745,9 @@ Judging Page
     }
     
     function changeJudgedStatus(id) {
-        var chosenStatus = $("#change-judged-status").val();
+        chosenStatus = $("#change-judged-status").val();
         $.post("/changeJudgedStatus", {id: id, chosenStatus: chosenStatus}, data => {
-            $("#change-judged-status").val(chosenStatus);
+            window.location.reload()
         });
     }
 
