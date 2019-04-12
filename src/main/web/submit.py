@@ -1,7 +1,11 @@
 import os
 import logging
 from code.util import register
+<<<<<<< HEAD
 from code.util.db import Submission, Problem, User
+=======
+from code.util.db import Submission, Problem, User, Contest
+>>>>>>> auto_rejudge
 import time
 import shutil
 import re
@@ -220,11 +224,23 @@ def download(params, setHeader, user):
     print(json.dumps(data))
     return json.dumps(data)
 
+def rejudgeAll(params, setHeader, user):
+    id = params["id"]
+    ctime = time.time() * 1000
+    for contestant in User.all():
+        for submission in [s for s in Submission.all() if s.problem.id == id and s.user == contestant
+                            and Contest.getCurrent().start s.timestamp < ctime and s.result != "reject"]:
+            if os.path.exists(f"/tmp/{submission.id}"):
+                shutil.rmtree(f"/tmp/{submission.id}")
+            runCode(submission)
+    return Problem.get(id).title
+
 register.post("/checkSubVersion", "admin", checkSubVersion)
 register.post("/checkCheckout", "admin", checkCheckout)
 register.post("/removeCheckout", "admin", removeCheckout)
 register.post("/changeJudgedStatus", "admin", changeJudgedStatus)
-register.post("/download", "admin", download)
 register.post("/submit", "loggedin", submit)
 register.post("/changeResult", "admin", changeResult)
 register.post("/rejudge", "admin", rejudge)
+register.post("/download", "admin", download)
+register.post("/rejudgeAll", "admin", rejudgeAll)

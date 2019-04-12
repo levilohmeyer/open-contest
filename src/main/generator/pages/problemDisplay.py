@@ -88,6 +88,10 @@ def listProblems(params, user):
                 prob.description,
                 f"/problems/{prob.id}"
             ))
+            if user.isAdmin():
+                probCards.append(h.button("Rejudge All", type="button", onclick=f"rejudgeAll('{prob.id}')", cls="btn btn-primary rejudge"))
+                probCards.append(h.br())
+                probCards.append(h.br())
         return Page(
             h2("Problems", cls="page-title"),
             *probCards

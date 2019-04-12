@@ -783,6 +783,17 @@ Judging Page
                 const byteArray = new Uint8Array(byteNumbers);
                 saveAs(new Blob([byteArray], {type: "application/zip"}, name))
             })
+        });
+    }
             
+
+    function rejudgeAll(id) {
+        $(".rejudge").attr("disabled", true);
+        $(".rejudge").addClass("button-gray");
+
+        $.post("/rejudgeAll", {id: id}, data => {
+            $(".rejudge").attr("disabled", false);
+            $(".rejudge").removeClass("button-gray");
+            alert(`Rejudged All Submissions for Problem: ${data}`);
         });
     }
