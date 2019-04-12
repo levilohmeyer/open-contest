@@ -1,11 +1,7 @@
 import os
 import logging
 from code.util import register
-<<<<<<< HEAD
-from code.util.db import Submission, Problem, User
-=======
 from code.util.db import Submission, Problem, User, Contest
->>>>>>> auto_rejudge
 import time
 import shutil
 import re
