@@ -162,7 +162,7 @@ Problem page
         "ok": "check",
         "pending": "sync",
         "extra_output": "times",
-        "incomplete_output": "times",
+        "incomplete": "times",
         "wrong_answer": "times",
         "tle": "clock",
         "runtime_error": "exclamation-triangle"
@@ -171,7 +171,7 @@ Problem page
         "ok": "Accepted",
         "pending": "Pending...",
         "extra_output": "Extra Output",
-        "incomplete_output": "Incomplete Output",
+        "incomplete": "Incomplete Output",
         "wrong_answer": "Wrong Answer",
         "tle": "Time Limit Exceeded",
         "runtime_error": "Runtime Error"
@@ -231,7 +231,7 @@ Problem page
         } else {
             var results = "";
             for (var i = 0; i < sub.results.length; i ++) {
-                var res = sub.submissionStatus == "Review" && (sub.results[i] == "wrong_answer" || sub.results[i] == "incomplete_output" || sub.results[i] == "extra_output") ? "pending" : sub.results[i];
+                var res = sub.submissionStatus == "Review" && (sub.results[i] == "wrong_answer" || sub.results[i] == "incomplete" || sub.results[i] == "extra_output") ? "pending" : sub.results[i];
                 var icon = icons[res];
                 results += `<div class="col-2"><i class="fa fa-${icon}" title="${verdict_name[res]}"></i> Case #${i}</div>`;
             }

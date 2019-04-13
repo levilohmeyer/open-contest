@@ -102,7 +102,7 @@ def runCode(sub):
         res = readFile(f"/tmp/{sub.id}/out/result{i}.txt")
         if res == "ok" and strip((answers[-1] or "").rstrip()) != strip((outputs[-1] or "").rstrip()):
             if compareStrings(strip((outputs[-1] or "").rstrip()), strip((answers[-1] or "").rstrip())):
-                res = "incomplete_output"
+                res = "incomplete"
             elif compareStrings(strip((answers[-1] or "").rstrip()), strip((outputs[-1] or "").rstrip())):
                 res = "extra_output"
             else:
