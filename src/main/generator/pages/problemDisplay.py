@@ -49,7 +49,7 @@ def viewProblem(params, user):
     
     contest = Contest.getCurrent()
 
-    if contest.showProblemInfoBlocks == "On":
+    if contest == None or contest.showProblemInfoBlocks == "On":
         return Page(
             h.input(type="hidden", id="problem-id", value=problem.id),
             h2(problem.title, cls="page-title"),
