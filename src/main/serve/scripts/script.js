@@ -160,12 +160,18 @@ Problem page
 
     var icons = {
         "ok": "check",
+        "pending": "sync",
+        "extra_output": "times",
+        "incomplete_output": "times",
         "wrong_answer": "times",
         "tle": "clock",
         "runtime_error": "exclamation-triangle"
     };
     var verdict_name = {
         "ok": "Accepted",
+        "pending": "Pending...",
+        "extra_output": "Extra Output",
+        "incomplete_output": "Incomplete Output",
         "wrong_answer": "Wrong Answer",
         "tle": "Time Limit Exceeded",
         "runtime_error": "Runtime Error"
@@ -225,12 +231,12 @@ Problem page
         } else {
             var results = "";
             for (var i = 0; i < sub.results.length; i ++) {
-                var res = sub.results[i];
+                var res = sub.submissionStatus == "Review" && (sub.results[i] == "wrong_answer" || sub.results[i] == "incomplete_output" || sub.results[i] == "extra_output") ? "pending" : sub.results[i];
                 var icon = icons[res];
                 results += `<div class="col-2"><i class="fa fa-${icon}" title="${verdict_name[res]}"></i> Case #${i}</div>`;
             }
             $(".results.card .card-contents").html(`<div class="pad">
-                <h2>Result: ${verdict_name[sub.result]}</h2>
+                <h2>Result: ${verdict_name[sub.submissionStatus == "Review" ? "pending" : sub.result]}</h2>
                 <div class="row">
                     ${results}
                 </div>
@@ -415,7 +421,7 @@ Contest page
         var endDate = $("#contest-end-date").val();
         var endTime = $("#contest-end-time").val();
         var scoreboardOffTime = $("#scoreboard-off-time").val();
-
+        var showProblemInfoBlocks = $("#show-problem-info-blocks").val()
 
         // Invalid DATE format; "T" after the date and "Z" after the time have been inserted 
         // for the correct format for creating the Dates, then the milliseconds are adjusted 
@@ -455,11 +461,11 @@ Contest page
             problems.push(newProblem);
         }
 
-        $.post("/editContest", {id: id, name: name, start: start, end: end, scoreboardOff: endScoreboard, problems: JSON.stringify(problems)}, id => {
+        $.post("/editContest", {id: id, name: name, start: start, end: end, scoreboardOff: endScoreboard, problems: JSON.stringify(problems), showProblemInfoBlocks: showProblemInfoBlocks}, id => {
             if (window.location.pathname == "/contests/new") {
                 window.location = `/contests/${id}`;
             } else {
-                window.location.reload()
+                window.location.reload();
             }
         });
     }
@@ -485,6 +491,9 @@ Contest page
         var endScoreboard = new Date(parseInt($("#scoreboardOff").val()));
         $("#scoreboard-off-time").val(`${fix(endScoreboard.getHours())}:${fix(endScoreboard.getMinutes())}`);
 
+        var showProblemInfoBlocks = $("#showProblemInfoBlocks").val();
+        $("#show-problem-info-blocks").val(showProblemInfoBlocks);
+    
         $("div.problem-cards").sortable({
             placeholder: "ui-state-highlight",
             forcePlaceholderSize: true,
@@ -553,6 +562,7 @@ Problem page
         problem.input       = mdEditors[1].value();
         problem.output      = mdEditors[2].value();
         problem.constraints = mdEditors[3].value();
+        problem.timeLimit   = $("#problem-timeLimit").val();
         problem.samples     = $("#problem-samples").val();
         testData = [];
         $(".test-data-cards .card").each((_, card) => {
@@ -676,24 +686,57 @@ Messages Page
 /*--------------------------------------------------------------------------------------------------
 Judging Page
 --------------------------------------------------------------------------------------------------*/
-    function changeSubmissionResult(id) {
+    function changeSubmissionResult(id, curVer) {
         var result = $(`.result-choice.${id}`).val();
-        $.post("/changeResult", {id: id, result: result}, result => {
-            if (result == "ok") {
+        $.post("/checkSubVersion", {id: id, curVer: curVer}, data => {
+            if (data !== "ok") {
+                alert("The submission change was cancelled. The submission has recently been changed by another user.");
                 window.location.reload();
+                return;
             } else {
-                alert(result);
+                $.post("/changeResult", {id: id, result: result}, result => {
+                    if (result == "ok") {
+                        window.location.reload();
+                    } else {
+                        alert(result);
+                    }
+                });
             }
-        })
+        });
     }
 
-    function submissionPopup(id) {
-        $.post(`/judgeSubmission/${id}`, {}, data => {
-            $(".modal-dialog").html(data);
-            $(".result-tabs").tabs();
-            fixFormatting();
-            $(".modal").modal();
-        });
+    function submissionPopup(id, checkout) {
+        if (checkout !== ""){
+            $.post("/checkCheckout", {id: id, checkout: checkout}, data => {
+                if (data !== "ok") {
+                    let override = confirm(`${data} is already judging this submission. Do you wish to override?`);
+                    if (override) {
+                        $.post(`/judgeSubmission/${id}`, {}, data => {
+                            $(".modal-dialog").html(data);
+                            $(".result-tabs").tabs();
+                            fixFormatting();
+                            $(".modal").modal();
+                        });
+                    } else {
+                        return;
+                    }
+                } else {
+                    $.post(`/judgeSubmission/${id}`, {}, data => {
+                        $(".modal-dialog").html(data);
+                        $(".result-tabs").tabs();
+                        fixFormatting();
+                        $(".modal").modal();
+                    });
+                }
+            });
+        } else {
+            $.post(`/judgeSubmission/${id}`, {}, data => {
+                $(".modal-dialog").html(data);
+                $(".result-tabs").tabs();
+                fixFormatting();
+                $(".modal").modal();
+            });
+        }
     }
 
     function rejudge(id) {
@@ -704,6 +747,50 @@ Judging Page
             $(".rejudge").attr("disabled", false);
             $(".rejudge").removeClass("button-gray");
             alert(`New Result: ${verdict_name[data]}`);
+        });
+    }
+
+    function changeJudgedStatus(id) {
+        chosenStatus = $("#change-judged-status").val();
+        $.post("/changeJudgedStatus", {id: id, chosenStatus: chosenStatus}, data => {
+            window.location.reload()
+        });
+    }
+
+    function removeCheckout(id) {
+        $.post("/removeCheckout", {id: id}, data => {
+        });
+    }
+
+    function download(id) {
+        $(".rejudge").attr("disabled", true);
+        $(".rejudge").addClass("button-gray");
+
+        $.post("/download", {id: id}, data => {
+            $(".rejudge").attr("disabled", false);
+            $(".rejudge").removeClass("button-gray");
+            file = JSON.parse(data)
+            jQuery.each(file, (name, value) => {
+                byteCharacters = atob(value)
+                const byteNumbers = new Array(byteCharacters.length)
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i)
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                saveAs(new Blob([byteArray], {type: "application/zip"}, name))
+            })
+        });
+    }
+            
+
+    function rejudgeAll(id) {
+        $(".rejudge").attr("disabled", true);
+        $(".rejudge").addClass("button-gray");
+
+        $.post("/rejudgeAll", {id: id}, data => {
+            $(".rejudge").attr("disabled", false);
+            $(".rejudge").removeClass("button-gray");
+            alert(`Rejudged All Submissions for Problem: ${data}`);
         });
     }
 
