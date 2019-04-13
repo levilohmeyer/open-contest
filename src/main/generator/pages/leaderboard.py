@@ -72,9 +72,11 @@ def leaderboard(params, user):
         ))
 
     return Page(
-        h.a("Detailed Report", cls="button", href="/detailedReport"),
         h2("Leaderboard", cls="page-title"),
         div(cls="actions", contents=[
+            h.a(href="/detailedReport", contents=[
+                h.button("Detailed Report", cls="button get-report")
+            ]),
             h.a(href="/log", contents=[
                 h.button("Correct Log", cls="button get-log")
             ])
