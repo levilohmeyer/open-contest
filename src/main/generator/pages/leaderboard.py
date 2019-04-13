@@ -1,4 +1,4 @@
-from code.util.db import Submission, User, Contest
+from code.util.db import Submission, User, Contest, Problem
 from code.generator.lib.htmllib import *
 from code.generator.lib.page import *
 import logging
@@ -74,6 +74,11 @@ def leaderboard(params, user):
     return Page(
         h.a("Detailed Report", cls="button", href="/detailedReport"),
         h2("Leaderboard", cls="page-title"),
+        div(cls="actions", contents=[
+            h.a(href="/log", contents=[
+                h.button("Correct Log", cls="button get-log")
+            ])
+        ]),
         h.table(
             h.thead(
                 h.tr(
@@ -164,4 +169,39 @@ def score(submissions: list, contestStart, problemSummary) -> tuple:
     # The user's score is dependent on the number of solved problems and the number of penalty points
     return solvedProbs, sampleProbs, int(penPoints)
 
+def log(params, user):
+
+    logDict = {}
+    for sub in Submission.all():
+        currOldest = logDict.get((sub.user, sub.problem))
+        if ((currOldest == None) or sub.timestamp < currOldest):
+            logDict.update({(sub.user, sub.problem): sub.timestamp})
+
+
+    logList = sorted([ [*k, v] for k, v in logDict.items()], key=lambda tup: -tup[2])
+    logItems = []
+    for item in logList:
+        logItems.append(h.tr(
+            h.td(item[2], cls="time-format"),
+            h.td(item[0].username),
+            h.td(item[1].title)
+        ))
+
+    return Page(
+        h2("Log", cls="page-title"),
+        h.table(
+            h.thead(
+                h.tr(
+                    h.th("Date/Time"),
+                    h.th("Contestant"),
+                    h.th("Problem")
+                )
+            ),
+            h.tbody(
+                *logItems
+            )
+        )
+    )
+
 register.web("/leaderboard", "loggedin", leaderboard)
+register.web("/log", "loggedin", log)

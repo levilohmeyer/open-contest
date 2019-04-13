@@ -749,7 +749,7 @@ Judging Page
             alert(`New Result: ${verdict_name[data]}`);
         });
     }
-    
+
     function changeJudgedStatus(id) {
         chosenStatus = $("#change-judged-status").val();
         $.post("/changeJudgedStatus", {id: id, chosenStatus: chosenStatus}, data => {
@@ -792,4 +792,28 @@ Judging Page
             $(".rejudge").removeClass("button-gray");
             alert(`Rejudged All Submissions for Problem: ${data}`);
         });
+    }
+
+    function getDiff(output, answer) {
+
+
+        let color = '',
+        span = '';
+
+        let diff = Diff.diffLines(answer, output),
+            display = document.getElementById('diff'),
+            fragment = "";
+
+        diff.forEach(function(part){{
+        // green for additions, red for deletions
+        // grey for common parts
+            color = part.added ? 'darkgreen' :
+                part.removed ? 'darkred' : 'dimgrey';
+            bgcolor = (color == 'darkgreen') ? ';background-color:palegreen' :
+                (color == 'darkred') ? ';background-color:#F6B0B0' : ''
+            span = '<div style="color:{0}{1}">{2}</div>'.replace("{0}", color).replace("{1}", bgcolor).replace("{2}", part.value.replace(/ /g, "&nbsp;").replace(/\n/g, "<br/>"));
+            fragment += span;
+        }});
+        return fragment;
+            
     }
