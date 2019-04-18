@@ -10,8 +10,8 @@ from zipfile import ZipFile
 import base64
 import json
 
-MAX_OUTPUT_LENGTH = 1000000
-MAX_OUTPUT_DISPLAY_LENGTH = 10000
+MAX_OUTPUT_LENGTH = 10
+MAX_OUTPUT_DISPLAY_LENGTH = 5
 
 def addSubmission(probId, lang, code, user, type):
     sub = Submission()
@@ -92,6 +92,7 @@ def runCode(sub):
     errors = []
     results = []
     result = "ok"
+    oneWrong = False
 
     for i in range(tests):
         inputs.append(sub.problem.testData[i].input)
@@ -109,8 +110,11 @@ def runCode(sub):
                 res = "wrong_answer"
         if res == None:
             res = "tle"
-        if res == "ok" or res == "tle" or res == "runtime_error":
+        if (not oneWrong) and (res == "ok" or res == "tle" or res == "runtime_error"):
             sub.submissionStatus = "Judged"
+        else 
+            sub.submissionStatus = "Review"
+            oneWrong = True
         results.append(res)
 
         # Make result the first incorrect result
@@ -229,7 +233,7 @@ def rejudgeAll(params, setHeader, user):
     ctime = time.time() * 1000
     for contestant in User.all():
         for submission in [s for s in Submission.all() if s.problem.id == id and s.user == contestant
-                            and Contest.getCurrent().start() < s.timestamp < ctime and s.result != "reject"]:
+                            and Contest.getCurrent().start < s.timestamp < ctime and s.result != "reject"]:
             if os.path.exists(f"/tmp/{submission.id}"):
                 shutil.rmtree(f"/tmp/{submission.id}")
             runCode(submission)

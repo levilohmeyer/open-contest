@@ -174,10 +174,11 @@ def score(submissions: list, contestStart, problemSummary) -> tuple:
 def log(params, user):
 
     logDict = {}
-    for sub in Submission.all():
-        currOldest = logDict.get((sub.user, sub.problem))
-        if ((currOldest == None) or sub.timestamp < currOldest):
-            logDict.update({(sub.user, sub.problem): sub.timestamp})
+    for sub in Submission.all(): 
+        if sub.result == "ok":
+            currOldest = logDict.get((sub.user, sub.problem))
+            if ((currOldest == None) or sub.timestamp < currOldest):
+                logDict.update({(sub.user, sub.problem): sub.timestamp})
 
 
     logList = sorted([ [*k, v] for k, v in logDict.items()], key=lambda tup: -tup[2])
